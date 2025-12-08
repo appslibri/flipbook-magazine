@@ -48,6 +48,65 @@
                     }
                 </script>
 	
+  <style>
+    /* Hide mobile phone toolbars */
+    .phoneTopBar, .phoneBottomBar { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+  </style>
+
+  <!-- Force-hide mobile toolbars, including dynamically created elements -->
+  <script type="text/javascript">
+  (function forceHidePhoneBars(){
+    function killBars(){
+      try{
+        var els = document.querySelectorAll('.phoneTopBar, .phoneBottomBar');
+        els.forEach(function(el){
+          try{ el.style.setProperty('display','none','important'); el.style.setProperty('visibility','hidden','important'); el.style.setProperty('pointer-events','none','important'); }catch(e){}
+          try{ if(el && el.parentNode) el.parentNode.removeChild(el); }catch(e){}
+        });
+      }catch(e){}
+    }
+    try{ if(window.bookConfig) bookConfig.ToolBarVisible = false; }catch(e){}
+    killBars();
+    try{
+      var mo = new MutationObserver(killBars);
+      mo.observe(document.documentElement || document.body, {childList:true, subtree:true});
+    }catch(e){ setInterval(killBars, 500); }
+  })();
+  </script>
+
+  <!-- Listen for postMessage navigation commands (prev/next) -->
+  <script type="text/javascript">
+  (function bindPostMessageNav(){
+    function resolveBook(){
+      try{
+        if(window.book) return window.book;
+        if(window.BookInfo && typeof BookInfo.getBook === 'function'){
+          var b = BookInfo.getBook();
+          if(b){ window.book = b; return b; }
+        }
+      }catch(e){}
+      return null;
+    }
+    window.addEventListener('message', function(e){
+      if(!e || !e.data || e.data.type !== 'flipbook-nav') return;
+      var b = resolveBook();
+      var handled = false;
+      if(e.data.dir === 'next' && b && typeof b.nextPage === 'function') { b.nextPage(); handled = true; }
+      if(e.data.dir === 'prev' && b && typeof b.prevPage === 'function') { b.prevPage(); handled = true; }
+      if(!handled && typeof window.gotoPageFun === 'function'){
+        try{
+          var cur = (window.BookInfo && typeof BookInfo.getCurrentPageIndex==='function' && BookInfo.getCurrentPageIndex()) || 1;
+          var total = (window.bookConfig && window.bookConfig.totalPageCount) || 1;
+          var target = cur;
+          if(e.data.dir === 'next') target = Math.min(cur+1, total);
+          if(e.data.dir === 'prev') target = Math.max(cur-1, 1);
+          window.gotoPageFun(target, false, 'postMessage-fallback');
+        }catch(err){}
+      }
+    });
+  })();
+  </script>
+
 </body>
 
 </html>
