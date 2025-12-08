@@ -56,6 +56,10 @@
   <!-- Force-hide mobile toolbars, including dynamically created elements -->
   <script type="text/javascript">
   (function forceHidePhoneBars(){
+    // Only apply on mobile/touch
+    var isMobile = false;
+    try { isMobile = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 900px)').matches; } catch(e) {}
+    if(!isMobile) return;
     function killBars(){
       try{
         var els = document.querySelectorAll('.phoneTopBar, .phoneBottomBar');
