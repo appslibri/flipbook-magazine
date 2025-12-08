@@ -70,6 +70,15 @@
       }catch(e){}
     }
     try{ if(window.bookConfig) bookConfig.ToolBarVisible = false; }catch(e){}
+    function killBars(){
+      try{
+        var els = document.querySelectorAll('.phoneTopBar, .phoneBottomBar, .flip_button_left, .flip_button_right');
+        els.forEach(function(el){
+          try{ el.style.setProperty('display','none','important'); el.style.setProperty('visibility','hidden','important'); el.style.setProperty('pointer-events','none','important'); }catch(e){}
+          try{ if(el && el.parentNode) el.parentNode.removeChild(el); }catch(e){}
+        });
+      }catch(e){}
+    }
     killBars();
     try{
       var mo = new MutationObserver(killBars);
