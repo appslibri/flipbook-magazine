@@ -72,61 +72,36 @@
   })();
   </script>
 
-	<!-- Mobile-only inline prev/next controls (desktop unchanged) -->
-	<style>
-	  .__mobile_nav_wrap {
-	    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
-	    display: none; gap: 24px; justify-content: center; align-items: center;
-	    z-index: 2147483646; pointer-events: none; /* allow buttons to handle events */
-	  }
-	  .__mobile_nav_btn {
-	    width:60px; height:60px; border-radius:9999px; border:2px solid #C4EEFF; background:transparent;
-	    cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:0;
-	    pointer-events: auto; -webkit-tap-highlight-color: transparent;
-	  }
-	  @media (hover: none) and (pointer: coarse), (max-width: 900px) {
-	    .__mobile_nav_wrap { display: flex; }
-	  }
-	</style>
-	<script type="text/javascript">
-	(function mobileInlineNav(){
-	  var mounted = false;
-	  function ready(){
-	    try{
-	      if(!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 900px)').matches)) return false;
-	    }catch(e){}
-	    return (window.BookInfo && typeof BookInfo.getCurrentPageIndex==='function') || (typeof window.gotoPageFun==='function');
-	  }
-	  function goto(dir){
-	    try{
-	      var cur = (window.BookInfo && typeof BookInfo.getCurrentPageIndex==='function' && BookInfo.getCurrentPageIndex()) || 1;
-	      var total = (window.bookConfig && window.bookConfig.totalPageCount) || 1;
-	      if(typeof window.gotoPageFun==='function'){
-	        var target = dir==='prev' ? Math.max(cur-1,1) : Math.min(cur+1,total);
-	        return window.gotoPageFun(target, false, '__mobile_nav');
-	      }
-	      if(window.BookInfo && typeof BookInfo.getBook==='function'){
-	        var b = BookInfo.getBook();
-	        if(b && dir==='prev' && typeof b.prevPage==='function') return b.prevPage();
-	        if(b && dir==='next' && typeof b.nextPage==='function') return b.nextPage();
-	      }
-	    }catch(e){}
-	  }
-	  function mount(){
-	    if(mounted) return; mounted = true;
-	    var wrap = document.createElement('div'); wrap.className='__mobile_nav_wrap'; wrap.setAttribute('aria-hidden','false');
-	    var prev = document.createElement('button'); prev.type='button'; prev.className='__mobile_nav_btn'; prev.setAttribute('aria-label','Previous page');
-	    prev.innerHTML = '<svg viewBox="0 0 24 24" style="height:50%" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
-	    var next = document.createElement('button'); next.type='button'; next.className='__mobile_nav_btn'; next.setAttribute('aria-label','Next page');
-	    next.innerHTML = '<svg viewBox="0 0 24 24" style="height:50%" xmlns="http://www.w3.org/2000/svg"><path d="M9 6L15 12L9 18" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
-	    prev.addEventListener('click', goto.bind(null,'prev'));
-	    next.addEventListener('click', goto.bind(null,'next'));
-	    wrap.appendChild(prev); wrap.appendChild(next);
-	    document.body.appendChild(wrap);
-	  }
-	  (function wait(){ if(ready()) mount(); else setTimeout(wait, 200); })();
-	})();
-	</script>
+  <!-- Desktop: keep built-in bars; Mobile: hide internal overlay arrows and phone bars -->
+  <style>
+    /* Desktop: do not hide toolbar */
+    .fbBoardBar, .pageBar { display: block !important; visibility: visible !important; pointer-events: auto !important; }
+    /* Mobile only: hide phone bars and internal overlay arrows */
+    @media (hover: none) and (pointer: coarse), (max-width: 900px) {
+      .phoneTopBar, .phoneBottomBar,
+      .flip_button_left, .flip_button_right { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+    }
+  </style>
+  <script type="text/javascript">
+  (function hideMobileOverlays(){
+    // Run only on mobile/touch
+    var isMobile = false;
+    try { isMobile = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 900px)').matches; } catch(e) {}
+    if(!isMobile) return;
+    function kill(){
+      try{
+        var els = document.querySelectorAll('.phoneTopBar, .phoneBottomBar, .flip_button_left, .flip_button_right');
+        els.forEach(function(el){
+          try{ el.style.setProperty('display','none','important'); el.style.setProperty('visibility','hidden','important'); el.style.setProperty('pointer-events','none','important'); }catch(e){}
+          try{ if(el && el.parentNode) el.parentNode.removeChild(el); }catch(e){}
+        });
+      }catch(e){}
+    }
+    try{ if(window.bookConfig) bookConfig.ToolBarVisible = false; }catch(e){}
+    kill();
+    try{ var mo = new MutationObserver(kill); mo.observe(document.documentElement||document.body, {childList:true, subtree:true}); }catch(e){ setInterval(kill, 500); }
+  })();
+  </script>
 
   
 </body>
