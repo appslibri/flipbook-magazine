@@ -16,10 +16,15 @@
 	<meta name="Description" content="">
 	<link rel="image_src" href="files/shot.png" />
 	<meta name="Generator" content="FlipPDFPlus for win v6.23.7 at https://www.flipbuilder.com" />
-	<style>
-	  /* Hide mobile phone toolbars */
-	  .phoneTopBar, .phoneBottomBar { display: none !important; visibility: hidden !important; pointer-events: none !important; }
-	</style>
+    <style>
+      /* Desktop: keep built-in bars visible */
+      .fbBoardBar, .pageBar { display: block !important; visibility: visible !important; pointer-events: auto !important; }
+      /* Mobile: hide phone toolbars and overlay arrows */
+      @media (hover: none) and (pointer: coarse), (max-width: 900px) {
+        .phoneTopBar, .phoneBottomBar,
+        .flip_button_left, .flip_button_right { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+      }
+    </style>
 	<meta name="robots"content="noindex,nofollow">
 	
 </head>
