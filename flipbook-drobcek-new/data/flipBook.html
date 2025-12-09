@@ -35,9 +35,42 @@
   <script type="text/javascript" src="javascript/BookPreview.js"></script>
 	<script type="text/javascript" src="files/search/book_config.js"></script>
 	<script type="text/javascript">var sendvisitinfo = function (type, page) { };</script>
-	<script type="text/javascript">
+  <script type="text/javascript">
 		window.readerConfigLoaded = true;
 	</script>
+
+  <!-- Listen for postMessage navigation commands (prev/next) -->
+  <script type="text/javascript">
+  (function bindPostMessageNav(){
+    function resolveBook(){
+      try{
+        if(window.book) return window.book;
+        if(window.BookInfo && typeof BookInfo.getBook === 'function'){
+          var b = BookInfo.getBook();
+          if(b){ window.book = b; return b; }
+        }
+      }catch(e){}
+      return null;
+    }
+    window.addEventListener('message', function(e){
+      if(!e || !e.data || e.data.type !== 'flipbook-nav') return;
+      var b = resolveBook();
+      var handled = false;
+      if(e.data.dir === 'next' && b && typeof b.nextPage === 'function') { b.nextPage(); handled = true; }
+      if(e.data.dir === 'prev' && b && typeof b.prevPage === 'function') { b.prevPage(); handled = true; }
+      if(!handled && typeof window.gotoPageFun === 'function'){
+        try{
+          var cur = (window.BookInfo && typeof BookInfo.getCurrentPageIndex==='function' && BookInfo.getCurrentPageIndex()) || 1;
+          var total = (window.bookConfig && window.bookConfig.totalPageCount) || 1;
+          var target = cur;
+          if(e.data.dir === 'next') target = Math.min(cur+1, total);
+          if(e.data.dir === 'prev') target = Math.max(cur-1, 1);
+          window.gotoPageFun(target, false, 'postMessage');
+        }catch(err){}
+      }
+    });
+  })();
+  </script>
 
 	<!-- Mobile-only inline prev/next controls (desktop unchanged) -->
 	<style>
