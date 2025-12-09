@@ -24,6 +24,15 @@
 <body>
 	<script src="javascript/jquery-3.5.1.min.js"></script>
 	<script src="javascript/config.js"></script>
+	<script>
+	  (function forceDesktopToolbar(){
+	    try{
+	      var isMobile = false;
+	      try { isMobile = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 900px)').matches; } catch(e) {}
+	      if(!isMobile && window.bookConfig){ bookConfig.toolbarAlwaysShow = "Yes"; }
+	    }catch(e){}
+	  })();
+	</script>
 	<script src="javascript/LoadingJS.js"></script>
 	<script src="javascript/main_preview.js"></script>
 	<script src="javascript/BookPreview.js"></script>
