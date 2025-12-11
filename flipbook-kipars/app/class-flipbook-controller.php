@@ -27,6 +27,10 @@ class FlipBook_Controller {
 	{
 		$this->view->view_book();
 	}
+
+	function global_interface_preview() {
+		$this->view->global_interface_preview();
+	}
 	
 	function install_book($zipfile, $id) {
 		
@@ -46,6 +50,10 @@ class FlipBook_Controller {
 	function generate_body_code_Preview($id) {
 		
 		return $this->model->generate_body_code_Preview($id);
+	}
+
+	function render_global_template($id) {
+		return $this->model->render_global_template($id);
 	}
 	
 	function get_list_data() {

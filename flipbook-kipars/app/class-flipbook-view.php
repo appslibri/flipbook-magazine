@@ -265,5 +265,54 @@ class FlipBook_View {
 		</div>
 		<?php
 	}
+
+	function global_interface_preview() {
+		$books = $this->controller->get_list_data();
+		$current = isset( $_GET['flipbook_global_id'] ) ? absint( $_GET['flipbook_global_id'] ) : 0;
+		if ( ! $current && ! empty( $books ) ) {
+			$current = intval( $books[0]['id'] );
+		}
+		$preview_url = '';
+		if ( $current ) {
+			$preview_url = add_query_arg(
+				array(
+					'flipbook_global_preview' => 1,
+					'book_id'                 => $current,
+					'_wpnonce'                => wp_create_nonce( 'flipbook_global_preview_' . $current ),
+				),
+				home_url( '/' )
+			);
+		}
+		?>
+		<div class="wrap">
+			<div id="icon-flipbook" class="icon32"><br /></div>
+			<h2><?php esc_html_e( 'Global Interface Test Page', 'flipbook' ); ?></h2>
+			<p><?php esc_html_e( 'Use this page to preview the shared flipbook interface without changing the live embeds. Select any installed book and the preview will render the new global template in an isolated iframe.', 'flipbook' ); ?></p>
+			<?php if ( empty( $books ) ) : ?>
+				<div class="notice notice-warning"><p><?php esc_html_e( 'No books found. Install at least one flipbook to test the global interface.', 'flipbook' ); ?></p></div>
+			<?php else : ?>
+				<form method="get" style="margin-bottom:20px;">
+					<input type="hidden" name="page" value="flipbook_global_preview" />
+					<label for="flipbook-global-id" style="margin-right:8px;"><?php esc_html_e( 'Select book:', 'flipbook' ); ?></label>
+					<select id="flipbook-global-id" name="flipbook_global_id">
+						<?php foreach ( $books as $book ) : ?>
+							<option value="<?php echo intval( $book['id'] ); ?>" <?php selected( $current, intval( $book['id'] ) ); ?>>
+								<?php echo intval( $book['id'] ); ?> &mdash; <?php echo esc_html( $book['name'] ); ?>
+							</option>
+						<?php endforeach; ?>
+					</select>
+					<button type="submit" class="button"><?php esc_html_e( 'Load Preview', 'flipbook' ); ?></button>
+				</form>
+
+				<?php if ( $preview_url ) : ?>
+					<p><?php esc_html_e( 'Preview URL (only accessible to admins while logged in):', 'flipbook' ); ?><br>
+						<code><?php echo esc_html( $preview_url ); ?></code>
+					</p>
+					<iframe src="<?php echo esc_url( $preview_url ); ?>" style="width:100%;max-width:100%;height:700px;border:1px solid #ccd0d4;background:#fff;"></iframe>
+				<?php endif; ?>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
 		
 }

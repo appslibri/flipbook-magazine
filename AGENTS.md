@@ -7,13 +7,13 @@
   - `app/` — PHP classes (`class-flipbook-*.php`) in MVC style (controller, model, view, helpers).
   - `data/` — static assets and demos: `javascript/`, `style/`, `files/`, sample HTML.
   - `images/` — icons and plugin assets.
-  - `Licensing/` — third‑party licenses/attributions (when present).
+  - `Licensing/` — third-party licenses/attributions (when present).
 
 ## Build, Test, and Development Commands
 - No build step required. Run inside a WordPress site.
 - Install one variant:
   - Copy/symlink a folder (e.g., `flipbook-kutis`) to `wp-content/plugins/flipbook-kutis`.
-  - Activate with WP‑CLI: `wp plugin activate flipbook-kutis` or via WP Admin.
+  - Activate with WP-CLI: `wp plugin activate flipbook-kutis` or via WP Admin.
 - Linting (optional if WPCS/PHPCS is available):
   - `vendor/bin/phpcs --standard=WordPress flipbook-*/app`
 
@@ -43,5 +43,4 @@
 
 ## Agent-Specific Notes
 - Change only the intended `flipbook-*` folder; keep patterns consistent across variants.
-- Do not rename or reorganize top‑level folders without explicit approval.
-
+- Do not rename or reorganize top-level folders without explicit approval.

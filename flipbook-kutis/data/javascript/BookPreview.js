@@ -51,11 +51,45 @@ class BookPreviewPublic {
     }
 }
 
-class BookPreviewInterface extends BookPreviewPublic {
+  class BookPreviewInterface extends BookPreviewPublic {
     setBackgroundColor(params) { // bgBeginColor bgEndColor bgMRotation backgroundOpacity
         this.setBookConfig(params);
         if (backgroundObj != undefined) backgroundObj.resetBgColor();
-    }
+  }
+
+  // External navigation integration (prev/next via postMessage)
+  (function attachFlipbookMobileNav() {
+    try {
+      if (window.__flipbookNavListenerAdded) return;
+      window.__flipbookNavListenerAdded = true;
+
+      function nav(dir) {
+        try {
+          if (dir === 'next') {
+            if (typeof nextPageFun === 'function') return nextPageFun('postMessage');
+            if (window.BookInfo && BookInfo.getBook) {
+              var bk = BookInfo.getBook();
+              if (bk && typeof bk.nextPage === 'function') return bk.nextPage();
+              if (bk && typeof bk.gotoNextPage === 'function') return bk.gotoNextPage();
+            }
+          } else if (dir === 'prev') {
+            if (typeof previousPageFun === 'function') return previousPageFun('postMessage');
+            if (window.BookInfo && BookInfo.getBook) {
+              var bk2 = BookInfo.getBook();
+              if (bk2 && typeof bk2.previousPage === 'function') return bk2.previousPage();
+              if (bk2 && typeof bk2.gotoPrevPage === 'function') return bk2.gotoPrevPage();
+            }
+          }
+        } catch (e) {}
+      }
+
+      window.addEventListener('message', function (ev) {
+        var d = ev && ev.data;
+        if (!d || d.type !== 'flipbook-nav') return;
+        if (d.dir === 'next' || d.dir === 'prev') nav(d.dir);
+      });
+    } catch (e) {}
+  })();
     setBackgroundImage(params) { // backGroundImgURL backgroundPosition
         this.setBookConfig(params);
         if (backgroundObj != undefined) backgroundObj.resetBgImg();

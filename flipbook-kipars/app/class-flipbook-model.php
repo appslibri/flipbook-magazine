@@ -203,6 +203,49 @@ class FlipBook_Model {
 		}
 		return $ret;
 	}
+
+	public function get_book_row_by_id( $id ) {
+		global $wpdb;
+		$table_name = $wpdb->prefix . "flipbook";
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ) );
+	}
+
+	public function get_book_assets( $id ) {
+		$upload_path = trailingslashit( $this->get_upload_path() ) . $id . '/';
+		$upload_url  = trailingslashit( $this->get_upload_url() ) . $id . '/';
+		if ( ! is_dir( $upload_path ) ) {
+			return new WP_Error( 'flipbook_missing_assets', sprintf( __( 'Unable to locate assets for book ID %d.', 'flipbook' ), $id ) );
+		}
+
+		return array(
+			'path' => $upload_path,
+			'url'  => $upload_url,
+		);
+	}
+
+	public function render_global_template( $id ) {
+		$book_row = $this->get_book_row_by_id( $id );
+		if ( ! $book_row ) {
+			wp_die( esc_html__( 'Requested book does not exist.', 'flipbook' ), 404 );
+		}
+
+		$assets = $this->get_book_assets( $id );
+		if ( is_wp_error( $assets ) ) {
+			wp_die( esc_html( $assets->get_error_message() ), 404 );
+		}
+
+		$template = FLIPBOOK_PATH . 'templates/global-flipbook.php';
+		if ( ! file_exists( $template ) ) {
+			wp_die( esc_html__( 'Global template file is missing.', 'flipbook' ), 500 );
+		}
+
+		$engine_base_url = trailingslashit( FLIPBOOK_URL . 'data/' );
+		$book_assets_url = trailingslashit( $assets['url'] );
+		$engine_version  = defined( 'FLIPBOOK_ASSET_VERSION' ) ? FLIPBOOK_ASSET_VERSION : FLIPBOOK_VERSION;
+		$book_title      = ! empty( $book_row->name ) ? $book_row->name : sprintf( __( 'Flipbook #%d', 'flipbook' ), $id );
+
+		include $template;
+	}
 	
 	function generate_body_code_Preview($id){
 		global $wpdb;

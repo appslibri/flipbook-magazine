@@ -10,9 +10,8 @@ License: Copyright 2015 flipbuilder.com, All Rights Reserved
 */
 
 define('FLIPBOOK_VERSION', '2.0');
-
+define('FLIPBOOK_ASSET_VERSION', '20251210');
 define('FLIPBOOK_URL', plugin_dir_url( __FILE__ ));
-
 define('FLIPBOOK_PATH', plugin_dir_path( __FILE__ ));
 
 require_once 'app/class-flipbook-controller.php';
@@ -39,6 +38,7 @@ class FlipBook_Plugin
 		add_shortcode( 'flipbook', array($this, 'shortcode_handler') );
 		
 		add_action( 'init', array($this, 'register_script') );
+		add_action( 'init', array($this, 'maybe_render_global_preview'), 20 );
 		add_action( 'wp_enqueue_scripts', array($this, 'enqueue_script') );
 		add_action( 'admin_enqueue_scripts', array($this, 'enqueue_admin_script') );
 	}
@@ -98,7 +98,7 @@ class FlipBook_Plugin
 				'flipbook_show_books', 
 				array($this, 'show_books'),
 				FLIPBOOK_URL . 'images/logo-16.png' );
-				
+		
 		add_submenu_page(
 				'flipbook_show_books', 
 				__('Installed Books', 'flipbook'), 
@@ -120,6 +120,14 @@ class FlipBook_Plugin
 				'flipbook_add_new',
 
 				array($this, 'add_new' ) );
+		
+		add_submenu_page(
+				'flipbook_show_books',
+				__('Global Interface (Test)', 'flipbook'),
+				__('Global Interface (Test)', 'flipbook'),
+				'manage_options',
+				'flipbook_global_preview',
+				array($this, 'global_preview' ) );
 		
 		add_submenu_page(
 
@@ -149,6 +157,31 @@ class FlipBook_Plugin
 	public function view_book()
 	{
 		$this->flipbook_controller->view_book();
+	}
+
+	public function global_preview() {
+		$this->flipbook_controller->global_interface_preview();
+	}
+
+	public function maybe_render_global_preview() {
+		if ( ! isset( $_GET['flipbook_global_preview'] ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to view this preview.', 'flipbook' ), 403 );
+		}
+
+		$book_id = isset( $_GET['book_id'] ) ? absint( $_GET['book_id'] ) : 0;
+		if ( $book_id <= 0 ) {
+			wp_die( esc_html__( 'Missing or invalid book ID.', 'flipbook' ), 400 );
+		}
+
+		check_admin_referer( 'flipbook_global_preview_' . $book_id );
+
+		nocache_headers();
+		$this->flipbook_controller->render_global_template( $book_id );
+		exit;
 	}
 }
 
