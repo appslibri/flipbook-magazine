@@ -26,11 +26,20 @@
 	<script src="javascript/config.js"></script>
 	<script>
 	  (function forceDesktopToolbar(){
-	    try{
-	      var isMobile = false;
-	      try { isMobile = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 900px)').matches; } catch(e) {}
-	      if(!isMobile && window.bookConfig){ bookConfig.toolbarAlwaysShow = "Yes"; }
-	    }catch(e){}
+	    function applySetting(){
+	      if (!window.bookConfig) return false;
+	      try{ bookConfig.toolbarAlwaysShow = "Yes"; }catch(e){}
+	      return true;
+	    }
+	    var isMobile = false;
+	    try { isMobile = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 900px)').matches; } catch(e) {}
+	    if (isMobile) return;
+	    if (applySetting()) return;
+	    var attempts = 0;
+	    var timer = setInterval(function(){
+	      attempts += 1;
+	      if (applySetting() || attempts > 20) clearInterval(timer);
+	    }, 200);
 	  })();
 	</script>
 	<script src="javascript/LoadingJS.js"></script>
