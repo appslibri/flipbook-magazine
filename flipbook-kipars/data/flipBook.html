@@ -22,32 +22,164 @@
 </head>
 
 <body>
-	<script src="javascript/jquery-3.5.1.min.js"></script>
-	<script src="javascript/config.js"></script>
-	<script src="javascript/LoadingJS.js"></script>
-	<script src="javascript/main_preview.js"></script>
-	<script src="javascript/BookPreview.js"></script>
-	<script src="javascript/editor.js"></script>
-	<script src="files/search/book_config.js"></script>
-	<script type="text/javascript">var sendvisitinfo = function (type, page) { };</script>
-	<script src="javascript/FlipBookPlugins.min.js"></script>
-	<script src="javascript/flipHtml5.hiSlider2.min.js"></script>
-	<link rel="stylesheet" href="style/FlipBookPlugins.min.css" />
-	<link rel="stylesheet" href="style/template.css" />
-	<link rel="stylesheet" href="style/hiSlider2.min.css" />
-	<link rel="stylesheet" href="style/scrollbar.css" />
-	<link rel="stylesheet" href="style/style.css" />
-	<link rel="stylesheet" href="style/player.css" />
-	<link rel="stylesheet" href="style/phoneTemplate.css" />
+	<!-- Mobile/desktop bootstrap: load drobcek-new flip logic on mobile only -->
+	<div id="tmpLoading" style="width: 100%; height: 100%; position: absolute; z-index: -2;background:#323232;"></div>
+	<script type="text/javascript">
+	(function() {
+	  var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Math.min(window.innerWidth, screen.width || window.innerWidth) <= 812;
+	  var head = document.getElementsByTagName('head')[0];
+	  var body = document.body;
+	  function addScript(src, inline) {
+	    if (inline) {
+	      var s = document.createElement('script');
+	      s.type = 'text/javascript';
+	      s.text = src;
+	      body.appendChild(s);
+	      return s;
+	    }
+	    var s = document.createElement('script');
+	    s.src = src;
+	    s.type = 'text/javascript';
+	    s.defer = true;
+	    body.appendChild(s);
+	    return s;
+	  }
+	  function addCss(href) {
+	    var l = document.createElement('link');
+	    l.rel = 'stylesheet';
+	    l.href = href;
+	    head.appendChild(l);
+	    return l;
+	  }
+
+  if (isMobile) {
+    // Ensure parity with desktop for navigation support
+    addScript('javascript/jquery-3.5.1.min.js?v=20251210');
+    addScript('javascript/config.js?v=20251210');
+    addScript('javascript/LoadingJS.js?v=20251210');
+    addScript('javascript/resource_skeleton.js?v=20251210');
+    addScript('javascript/main_preview.js?v=20251210');
+    addScript('javascript/BookPreview.js?v=20251210');
+    addScript('javascript/editor.js?v=20251210');
+    addScript('files/search/book_config.js');
+    addScript('var sendvisitinfo = function (type, page) { };', true);
+    addScript('window.readerConfigLoaded = true;', true);
+    // Click fallback for mobile nav buttons inside the viewer
+    addScript("(function(){\n      function attach(){\n        try{\n          var lb = window.jQuery && jQuery('.slidePreToolbar');\n          var rb = window.jQuery && jQuery('.slideNextToolbar');\n          if (lb && lb.length && typeof window.previousPageFun==='function'){ lb.off('click.flip-fb').on('click.flip-fb', function(){ try{ window.previousPageFun('click'); }catch(e){} }); }\n          if (rb && rb.length && typeof window.nextPageFun==='function'){ rb.off('click.flip-fb').on('click.flip-fb', function(){ try{ window.nextPageFun('click'); }catch(e){} }); }\n        }catch(e){}\n      }\n      // Try a few times while scripts initialize\n      var tries=0; var t=setInterval(function(){ attach(); tries++; if (tries>20) clearInterval(t); }, 300);\n      if (document.readyState==='complete' || document.readyState==='interactive'){ setTimeout(attach, 1000); } else { document.addEventListener('DOMContentLoaded', function(){ setTimeout(attach, 500); }); }\n    })();", true);
+  } else {
+	    // Original kipars desktop logic
+	    addCss('style/FlipBookPlugins.min.css');
+	    addCss('style/template.css');
+	    addCss('style/hiSlider2.min.css');
+	    addCss('style/scrollbar.css');
+	    addCss('style/style.css');
+	    addCss('style/player.css');
+	    addCss('style/phoneTemplate.css');
+    addScript('javascript/jquery-3.5.1.min.js?v=20251210');
+    addScript('javascript/config.js?v=20251210');
+    addScript('javascript/LoadingJS.js?v=20251210');
+    addScript('javascript/main_preview.js?v=20251210');
+    addScript('javascript/BookPreview.js?v=20251210');
+    addScript('javascript/editor.js?v=20251210');
+    addScript('files/search/book_config.js?v=20251210');
+	    addScript('var sendvisitinfo = function (type, page) { };', true);
+	    addScript('javascript/FlipBookPlugins.min.js');
+	    addScript('javascript/flipHtml5.hiSlider2.min.js');
+	    addScript('javascript/pdf.js');
+	    addScript('if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = "javascript/pdf.worker.js"; }', true);
+	  }
+	})();
+	</script>
+
 	<!-- UPLOAD_FLIP_BUILDER -->
-	
-	<script src="javascript/pdf.js"></script>
-                <script>
-                    if (pdfjsLib) {
-                        pdfjsLib.GlobalWorkerOptions.workerSrc = "javascript/pdf.worker.js";
-                    }
-                </script>
-	
+
+	<style>
+	.flipbook-mobile-controls{position:fixed;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:16px;z-index:9999;pointer-events:none}
+	.flipbook-mobile-controls .button{background:#eee;border-radius:999px;padding:10px 16px;display:flex;align-items:center;gap:8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;box-shadow:0 4px 10px rgba(0,0,0,0.2);pointer-events:auto;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+	.flipbook-mobile-controls .button:active{transform:scale(0.96);box-shadow:0 2px 6px rgba(0,0,0,0.2)}
+	.flipbook-mobile-controls img{width:24px;height:24px;pointer-events:none}
+	@media (min-width:813px){.flipbook-mobile-controls{display:none}}
+	</style>
+
+	<script type="text/javascript">
+	// External nav bridge to support parent-page buttons on all builds
+	(function(){
+	  function __fb_tryNav(dir, attempt){
+	    attempt = attempt || 0;
+	    try {
+	      if (dir === 'next') {
+	        if (typeof window.nextPageFun === 'function') return window.nextPageFun('postMessage');
+	        if (window.BookInfo && typeof BookInfo.getBook === 'function') {
+	          var bk = BookInfo.getBook();
+	          if (bk && typeof bk.nextPage === 'function') return bk.nextPage();
+	          if (bk && typeof bk.gotoNextPage === 'function') return bk.gotoNextPage();
+	        }
+	      } else if (dir === 'prev') {
+	        if (typeof window.previousPageFun === 'function') return window.previousPageFun('postMessage');
+	        if (window.BookInfo && typeof BookInfo.getBook === 'function') {
+	          var bk2 = BookInfo.getBook();
+	          if (bk2 && typeof bk2.previousPage === 'function') return bk2.previousPage();
+	          if (bk2 && typeof bk2.gotoPrevPage === 'function') return bk2.gotoPrevPage();
+	        }
+	      }
+	    } catch(e){}
+	    if (attempt < 20) setTimeout(function(){ __fb_tryNav(dir, attempt + 1); }, 150);
+	  }
+
+	  window.__flipbookNavigate = __fb_tryNav;
+
+	  function __fb_handleMsg(ev){
+	    var d = ev && ev.data; if (!d) return;
+	    if (typeof d === 'string') { // allow JSON or simple strings
+	      try { var j = JSON.parse(d); if (j && j.type === 'flipbook-nav' && (j.dir === 'next' || j.dir === 'prev')) return __fb_tryNav(j.dir); } catch(e){}
+	      if (d === 'flipbook-next') return __fb_tryNav('next');
+	      if (d === 'flipbook-prev') return __fb_tryNav('prev');
+	    } else if (d && d.type === 'flipbook-nav' && (d.dir === 'next' || d.dir === 'prev')) {
+	      return __fb_tryNav(d.dir);
+	    }
+	  }
+	  if (window.addEventListener) window.addEventListener('message', __fb_handleMsg);
+	  var __prevOnMsg = window.onmessage;
+	  window.onmessage = function(ev){ try { __fb_handleMsg(ev); } catch(e){} if (typeof __prevOnMsg === 'function') try { __prevOnMsg.call(window, ev); } catch(e){} };
+
+	  function __fb_pingReady(attempt){
+	    attempt = attempt || 0;
+	    try { if (window.parent) window.parent.postMessage({ type: 'flipbook-ready' }, '*'); } catch(e){}
+	    if (attempt < 5) setTimeout(function(){ __fb_pingReady(attempt + 1); }, 500);
+	  }
+	  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+	    setTimeout(__fb_pingReady, 300);
+	  } else {
+	    document.addEventListener('DOMContentLoaded', function(){ setTimeout(__fb_pingReady, 300); });
+	  }
+
+	  function __fb_insertMobileControls(){
+	    var isTouch = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Math.min(window.innerWidth, screen.width || window.innerWidth) <= 812;
+	    if (!isTouch) return;
+	    if (document.querySelector('.flipbook-mobile-controls')) return;
+	    var wrap = document.createElement('div');
+	    wrap.className = 'flipbook-mobile-controls';
+	    function makeButton(dir, label, icon){
+	      var btn = document.createElement('div');
+	      btn.className = 'button flipbook-mobile-' + dir;
+	      btn.innerHTML = '<img src="' + icon + '" alt="" /><span>' + label + '</span><canvas width="40" height="16" class="divReflect"></canvas>';
+	      btn.addEventListener('click', function(ev){ ev.preventDefault(); try{ window.__flipbookNavigate && window.__flipbookNavigate(dir); }catch(e){} });
+	      return btn;
+	    }
+	    var prevIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAf0lEQVR4AezQWwqAIBCF4WpL7n8Jrqn4X0TQccaTEUHCQfHyOcyxPTR+uDT2/VaklM5STmARqngW5V8XVlAXVtEh3EPZswJWp9sKHteXlHUDr0AppIFzzjsHd9PAgCvwLmzhfGiFN3VMmEsgzEqGMKCKu7CKh2AFD8PgM/kefAEAAP//H1xG0wAAAAZJREFUAwCVKTgtWSDnGQAAAABJRU5ErkJggg=='
+	    var nextIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAiElEQVR4AezQ0QnAIAwE0LYruf8IztRyP3IQo5dYoR8VAhHNS8h1bDo/3Bb7jVWUUu420iQJT6ziYRiDKngKVnADYxovAHLgH985NzA/KrmHL8No3sNfgWutJxpwLMM9FA0MjI9eoIAD//jOuYH5cZSPUNSl4BmaghU0DKtoGEaBGqkdK/g2+AEAAP//1+o4MgAAAAZJREFUAwCVKTgtWSDnGQAAAABJRU5ErkJggg=='
+	    wrap.appendChild(makeButton('prev', 'Previous Page', prevIcon));
+	    wrap.appendChild(makeButton('next', 'Next Page', nextIcon));
+	    document.body.appendChild(wrap);
+	  }
+	  if (document.readyState === 'complete') {
+	    __fb_insertMobileControls();
+	  } else {
+	    document.addEventListener('DOMContentLoaded', __fb_insertMobileControls);
+	  }
+	})();
+	</script>
+
 </body>
 
 </html>

@@ -56,6 +56,40 @@ class BookPreviewPublic {
         this.setBookConfig(params);
         if (backgroundObj != undefined) backgroundObj.resetBgColor();
     }
+
+  // External navigation integration (prev/next via postMessage)
+  (function attachFlipbookMobileNav() {
+    try {
+      if (window.__flipbookNavListenerAdded) return;
+      window.__flipbookNavListenerAdded = true;
+
+      function nav(dir) {
+        try {
+          if (dir === 'next') {
+            if (typeof nextPageFun === 'function') return nextPageFun('postMessage');
+            if (window.BookInfo && BookInfo.getBook) {
+              var bk = BookInfo.getBook();
+              if (bk && typeof bk.nextPage === 'function') return bk.nextPage();
+              if (bk && typeof bk.gotoNextPage === 'function') return bk.gotoNextPage();
+            }
+          } else if (dir === 'prev') {
+            if (typeof previousPageFun === 'function') return previousPageFun('postMessage');
+            if (window.BookInfo && BookInfo.getBook) {
+              var bk2 = BookInfo.getBook();
+              if (bk2 && typeof bk2.previousPage === 'function') return bk2.previousPage();
+              if (bk2 && typeof bk2.gotoPrevPage === 'function') return bk2.gotoPrevPage();
+            }
+          }
+        } catch (e) {}
+      }
+
+      window.addEventListener('message', function (ev) {
+        var d = ev && ev.data;
+        if (!d || d.type !== 'flipbook-nav') return;
+        if (d.dir === 'next' || d.dir === 'prev') nav(d.dir);
+      });
+    } catch (e) {}
+  })();
     setBackgroundImage(params) { // backGroundImgURL backgroundPosition
         this.setBookConfig(params);
         if (backgroundObj != undefined) backgroundObj.resetBgImg();
@@ -961,6 +995,69 @@ class BookPreviewPublic {
         changeShowBookByWindow();
     }
   }
+
+  // External navigation integration (prev/next via postMessage)
+  (function attachFlipbookMobileNav() {
+    try {
+      if (window.__flipbookNavListenerAdded) return;
+      window.__flipbookNavListenerAdded = true;
+
+      function tryNav(dir, attempt) {
+        attempt = attempt || 0;
+        try {
+          if (dir === 'next') {
+            if (typeof nextPageFun === 'function') return nextPageFun('postMessage');
+            if (window.BookInfo && BookInfo.getBook) {
+              var bk = BookInfo.getBook();
+              if (bk && typeof bk.nextPage === 'function') return bk.nextPage();
+              if (bk && typeof bk.gotoNextPage === 'function') return bk.gotoNextPage();
+            }
+          } else if (dir === 'prev') {
+            if (typeof previousPageFun === 'function') return previousPageFun('postMessage');
+            if (window.BookInfo && BookInfo.getBook) {
+              var bk2 = BookInfo.getBook();
+              if (bk2 && typeof bk2.previousPage === 'function') return bk2.previousPage();
+              if (bk2 && typeof bk2.gotoPrevPage === 'function') return bk2.gotoPrevPage();
+            }
+          }
+        } catch (e) {}
+        if (attempt < 20) {
+          setTimeout(function(){ tryNav(dir, attempt + 1); }, 150);
+        }
+      }
+
+      function handleMsg(ev) {
+        var d = ev && ev.data;
+        if (!d) return;
+        // Support JSON string payloads
+        if (typeof d === 'string') {
+          try { d = JSON.parse(d); } catch (e) {}
+        }
+        // Accept object payloads {type:'flipbook-nav', dir:'next|prev'}
+        if (d && d.type === 'flipbook-nav' && (d.dir === 'next' || d.dir === 'prev')) {
+          return tryNav(d.dir);
+        }
+        // Accept plain string payloads 'flipbook-next' / 'flipbook-prev'
+        if (typeof d === 'string') {
+          if (d === 'flipbook-next') return tryNav('next');
+          if (d === 'flipbook-prev') return tryNav('prev');
+        }
+      }
+      if (window.addEventListener) window.addEventListener('message', handleMsg);
+      // Fallback to onmessage to avoid environments that miss addEventListener hooks
+      var __prev = window.onmessage;
+      window.onmessage = function(ev){
+        try { handleMsg(ev); } catch(e) {}
+        if (typeof __prev === 'function') try { __prev.call(window, ev); } catch(e) {}
+      };
+    } catch (e) {}
+  })();
+
+  // Notify parent that flipbook can accept nav messages
+  try {
+    window.__flipbookNavReady = true;
+    if (window.parent) window.parent.postMessage({ type: 'flipbook-ready' }, '*');
+  } catch(e){}
   
   var BookPreview = new BookPreviewInterface();
   
